@@ -1,6 +1,7 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
@@ -21,7 +22,7 @@ namespace RabbitMQNet5.Subscriber
             {
                 var channel = connection.CreateModel();
 
-                string topic = "logs-topic";
+                string header = "header-exchange";
 
                 channel.BasicQos(0, 1, false);
 
@@ -29,13 +30,18 @@ namespace RabbitMQNet5.Subscriber
 
                 var queueName = channel.QueueDeclare().QueueName;
 
-                var routeKey = "*.error.*"; //"info.#" //"*.*.warning" //"#.critical"
 
-                channel.QueueBind(queueName, topic, routeKey, null);
+                Dictionary<string, object> headers = new Dictionary<string, object>();
+                headers.Add("format", "pdf");
+                headers.Add("shape", "a4");
+                headers.Add("x-match", "all");
+
+
+                channel.QueueBind(queueName, header, string.Empty, headers);
 
                 channel.BasicConsume(queueName, false, consumer);
 
-                Console.WriteLine("Listening the logs...");
+                Console.WriteLine("Listening the messages...");
 
                 consumer.Received += (object sender, BasicDeliverEventArgs e) =>
                 {
