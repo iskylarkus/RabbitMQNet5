@@ -32,6 +32,7 @@ namespace RabbitMQNet5.Publisher
 
                 var properties = channel.CreateBasicProperties();
                 properties.Headers = headers;
+                properties.Persistent = true;
 
 
                 string message = $"{header}   my-header-message   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
