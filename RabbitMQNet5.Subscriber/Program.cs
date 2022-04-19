@@ -21,17 +21,13 @@ namespace RabbitMQNet5.Subscriber
             {
                 var channel = connection.CreateModel();
 
-                string fanout = "logs-fanout";
-
-                var randomQueueName = channel.QueueDeclare().QueueName;
-
-                channel.QueueBind(randomQueueName, fanout, "", null);
-
                 channel.BasicQos(0, 1, false);
 
                 var consumer = new EventingBasicConsumer(channel);
 
-                channel.BasicConsume(randomQueueName, false, consumer);
+                var queueName = "queue-critical";
+
+                channel.BasicConsume(queueName, false, consumer);
 
                 Console.WriteLine("Listening the logs...");
 
