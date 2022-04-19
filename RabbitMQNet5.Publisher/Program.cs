@@ -21,7 +21,7 @@ namespace RabbitMQNet5.Publisher
 
                 channel.QueueDeclare(queue, true, false, false);
 
-                Enumerable.Range(10, 60).ToList().ForEach(x =>
+                Enumerable.Range(10, 90).ToList().ForEach(x =>
                 {
                     string message = $"Message #{x}   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
