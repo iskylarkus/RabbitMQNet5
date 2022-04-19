@@ -1,7 +1,9 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQNet5.Shared;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace RabbitMQNet5.Publisher
 {
@@ -35,14 +37,16 @@ namespace RabbitMQNet5.Publisher
                 properties.Persistent = true;
 
 
-                string message = $"{header}   my-header-message   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                var product = new Product { Id = 1, Name = "Pen", Price = 99, Stock = 66 };
+                var productJson = JsonSerializer.Serialize(product);
 
-                var messageBody = Encoding.UTF8.GetBytes(message);
+
+                var messageBody = Encoding.UTF8.GetBytes(productJson);
 
                 channel.BasicPublish(header, string.Empty, properties, messageBody);
 
 
-                Console.WriteLine($"Send {header} :   {message}");
+                Console.WriteLine($"Send {header} :   {product.Id}-{product.Name}-{product.Price}-{product.Stock}");
             }
 
             Console.ReadLine();
