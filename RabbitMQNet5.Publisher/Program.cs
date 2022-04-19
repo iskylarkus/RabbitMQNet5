@@ -1,6 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Text;
 
 namespace RabbitMQNet5.Publisher
@@ -20,39 +20,31 @@ namespace RabbitMQNet5.Publisher
             {
                 var channel = connection.CreateModel();
 
-                string topic = "logs-topic";
+                string header = "header-exchange";
 
-                channel.ExchangeDeclare(topic, type: ExchangeType.Topic, durable: true);
+                channel.ExchangeDeclare(header, type: ExchangeType.Headers, durable: true);
 
-                Random random = new Random();
 
-                Enumerable.Range(10, 90).ToList().ForEach(x =>
-                {
-                    LogNames log1 = (LogNames)random.Next(1, 5);
-                    LogNames log2 = (LogNames)random.Next(1, 5);
-                    LogNames log3 = (LogNames)random.Next(1, 5);
+                Dictionary<string, object> headers = new Dictionary<string, object>();
+                headers.Add("format", "pdf");
+                headers.Add("shape", "a4");
 
-                    var routeKey = $"{log1}.{log2}.{log3}";
 
-                    string message = $"{topic} : {routeKey}  #{x}   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                var properties = channel.CreateBasicProperties();
+                properties.Headers = headers;
 
-                    var messageBody = Encoding.UTF8.GetBytes(message);
 
-                    channel.BasicPublish(topic, routeKey, null, messageBody);
+                string message = $"{header}   my-header-message   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-                    Console.WriteLine($"Send {topic}:{routeKey} #{x} :   {message}");
-                });
+                var messageBody = Encoding.UTF8.GetBytes(message);
+
+                channel.BasicPublish(header, string.Empty, properties, messageBody);
+
+
+                Console.WriteLine($"Send {header} :   {message}");
             }
 
             Console.ReadLine();
         }
-    }
-
-    public enum LogNames
-    {
-        critical = 1,
-        error = 2,
-        warning = 3,
-        information = 4,
     }
 }
