@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
+using System.Linq;
 using System.Text;
 
 namespace RabbitMQNet5.Publisher
@@ -20,14 +21,17 @@ namespace RabbitMQNet5.Publisher
 
                 channel.QueueDeclare(queue, true, false, false);
 
-                string message = "Hello World > " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                Enumerable.Range(10, 60).ToList().ForEach(x =>
+                {
+                    string message = $"Message #{x}   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-                var messageBody = Encoding.UTF8.GetBytes(message);
+                    var messageBody = Encoding.UTF8.GetBytes(message);
 
-                channel.BasicPublish(string.Empty, queue, null, messageBody);
+                    channel.BasicPublish(string.Empty, queue, null, messageBody);
+
+                    Console.WriteLine($"Send the message #{x} :   {message}");
+                });
             }
-
-            Console.WriteLine("Send the message...");
 
             Console.ReadLine();
         }
