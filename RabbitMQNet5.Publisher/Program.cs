@@ -5,7 +5,7 @@ using System.Text;
 
 namespace RabbitMQNet5.Publisher
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -20,23 +20,46 @@ namespace RabbitMQNet5.Publisher
             {
                 var channel = connection.CreateModel();
 
-                string fanout = "logs-fanout";
+                string direct = "logs-direct";
 
-                channel.ExchangeDeclare(fanout, type: ExchangeType.Fanout, durable: true);
+                channel.ExchangeDeclare(direct, type: ExchangeType.Direct, durable: true);
+
+                Enum.GetNames(typeof(LogNames)).ToList().ForEach(x =>
+                {
+                    var rootKey = $"route-{x}";
+
+                    var queueName = $"queue-{x}";
+
+                    channel.QueueDeclare(queueName, true, false, false);
+
+                    channel.QueueBind(queueName, direct, rootKey, null);
+                });
 
                 Enumerable.Range(10, 90).ToList().ForEach(x =>
                 {
-                    string message = $"log #{x}   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    LogNames log = (LogNames)new Random().Next(1, 5);
+
+                    string message = $"log type:{log} #{x}   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+                    var routeKey = $"route-{log}";
 
                     var messageBody = Encoding.UTF8.GetBytes(message);
 
-                    channel.BasicPublish(fanout, "", null, messageBody);
+                    channel.BasicPublish(direct, routeKey, null, messageBody);
 
-                    Console.WriteLine($"Send the log #{x} :   {message}");
+                    Console.WriteLine($"Send the log type:{log} #{x} :   {message}");
                 });
             }
 
             Console.ReadLine();
         }
+    }
+
+    public enum LogNames
+    {
+        critical = 1,
+        error = 2,
+        warning = 3,
+        information = 4,
     }
 }
