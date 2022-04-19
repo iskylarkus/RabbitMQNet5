@@ -20,34 +20,27 @@ namespace RabbitMQNet5.Publisher
             {
                 var channel = connection.CreateModel();
 
-                string direct = "logs-direct";
+                string topic = "logs-topic";
 
-                channel.ExchangeDeclare(direct, type: ExchangeType.Direct, durable: true);
+                channel.ExchangeDeclare(topic, type: ExchangeType.Topic, durable: true);
 
-                Enum.GetNames(typeof(LogNames)).ToList().ForEach(x =>
-                {
-                    var rootKey = $"route-{x}";
-
-                    var queueName = $"queue-{x}";
-
-                    channel.QueueDeclare(queueName, true, false, false);
-
-                    channel.QueueBind(queueName, direct, rootKey, null);
-                });
+                Random random = new Random();
 
                 Enumerable.Range(10, 90).ToList().ForEach(x =>
                 {
-                    LogNames log = (LogNames)new Random().Next(1, 5);
+                    LogNames log1 = (LogNames)random.Next(1, 5);
+                    LogNames log2 = (LogNames)random.Next(1, 5);
+                    LogNames log3 = (LogNames)random.Next(1, 5);
 
-                    string message = $"log type:{log} #{x}   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                    var routeKey = $"{log1}.{log2}.{log3}";
 
-                    var routeKey = $"route-{log}";
+                    string message = $"{topic} : {routeKey}  #{x}   >   " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
                     var messageBody = Encoding.UTF8.GetBytes(message);
 
-                    channel.BasicPublish(direct, routeKey, null, messageBody);
+                    channel.BasicPublish(topic, routeKey, null, messageBody);
 
-                    Console.WriteLine($"Send the log type:{log} #{x} :   {message}");
+                    Console.WriteLine($"Send {topic}:{routeKey} #{x} :   {message}");
                 });
             }
 
