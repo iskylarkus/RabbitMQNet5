@@ -21,11 +21,17 @@ namespace RabbitMQNet5.Subscriber
             {
                 var channel = connection.CreateModel();
 
+                string topic = "logs-topic";
+
                 channel.BasicQos(0, 1, false);
 
                 var consumer = new EventingBasicConsumer(channel);
 
-                var queueName = "queue-critical";
+                var queueName = channel.QueueDeclare().QueueName;
+
+                var routeKey = "*.error.*"; //"info.#" //"*.*.warning" //"#.critical"
+
+                channel.QueueBind(queueName, topic, routeKey, null);
 
                 channel.BasicConsume(queueName, false, consumer);
 
